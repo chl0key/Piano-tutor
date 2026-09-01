@@ -1,4 +1,5 @@
 import { Setup } from '../components/Setup'
+import { library, useLibrary } from '../state/library'
 import { SONGS } from '../songs'
 import { EXERCISES } from '../music/exercises'
 import { SCAFFOLD_LEVELS, progressStore, streakOf, useProgress } from '../state/progress'
@@ -6,12 +7,15 @@ import type { Song } from '../music/song'
 
 interface Props {
   onOpenSong: (song: Song) => void
+  onOpenUserSong: (id: string) => void
   onOpenDrill: () => void
+  onAddSong: () => void
 }
 
-export function Home({ onOpenSong, onOpenDrill }: Props) {
+export function Home({ onOpenSong, onOpenUserSong, onOpenDrill, onAddSong }: Props) {
   const progress = useProgress()
   const streak = streakOf(progress.practiceDays)
+  const mine = useLibrary()
 
   // Next up: the first piece not yet finished at the reading level.
   const nextSong =
@@ -48,6 +52,56 @@ export function Home({ onOpenSong, onOpenDrill }: Props) {
           ))}
           <em>{SCAFFOLD_LEVELS[nextProgress.scaffold - 1].name}</em>
         </div>
+      </section>
+
+      <section className="block">
+        <div className="block-head">
+          <div>
+            <h2>Your songs</h2>
+            <p className="sub">
+              Any song you like, in three levels: all the chords in order, then a bit more, then the
+              whole thing.
+            </p>
+          </div>
+          <button className="primary" onClick={onAddSong}>Add a song</button>
+        </div>
+        {mine.length === 0 ? (
+          <button className="wide-card dashed" onClick={onAddSong}>
+            <strong>Add your first song</strong>
+            <span>
+              Find it on Spotify, then paste its chords or drop in a MIDI file. You get sheet music
+              at three levels of difficulty.
+            </span>
+          </button>
+        ) : (
+          <ul className="song-list">
+            {mine.map((s) => (
+              <li key={s.id}>
+                <button onClick={() => onOpenUserSong(s.id)}>
+                  <div className="song-main">
+                    <strong>{s.title}</strong>
+                    <span className="composer">{s.artist || 'Added by you'}</span>
+                    <span className="teaches">
+                      {s.key.name} · {s.bpm} bpm · {s.origin === 'midi' ? 'from MIDI' : 'from chords'}
+                    </span>
+                  </div>
+                  <div className="song-side">
+                    <span className="level-word">Basic · Int · Adv</span>
+                  </div>
+                </button>
+                <button
+                  className="ghost small remove"
+                  aria-label={`Remove ${s.title}`}
+                  onClick={() => {
+                    if (confirm(`Remove "${s.title}" from your songs?`)) library.remove(s.id)
+                  }}
+                >
+                  ✕
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
       </section>
 
       <section className="block">

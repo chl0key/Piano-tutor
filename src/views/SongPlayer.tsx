@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react'
 import { Staff } from '../components/Staff'
+import { ChordStrip } from '../components/ChordStrip'
+import type { Variant } from '../state/library'
 import { FallingNotes } from '../components/FallingNotes'
 import { Keyboard, type KeyLabelMode } from '../components/Keyboard'
 import { rangeFor, whiteCount, whiteOffset } from '../components/keyboardLayout'
@@ -8,8 +10,13 @@ import { songEnd, songStart, type Section, type Song } from '../music/song'
 import { useLesson, type LessonMode } from '../state/useLesson'
 import { SCAFFOLD_LEVELS, progressStore, useLogPracticeTime, type ScaffoldLevel } from '../state/progress'
 
-/** Never squeeze a key narrower than this; below it the keyboard stops being tappable. */
+/**
+ * Never squeeze a key narrower than this; below it the keyboard stops being
+ * tappable. Turning a phone sideways is how you see a whole song's range at
+ * once, so landscape trades a little key width for the whole keyboard fitting.
+ */
 const MIN_KEY_PX = 34
+const MIN_KEY_PX_LANDSCAPE = 20
 
 /** How much help each scaffold level gives. This table is the curriculum. */
 function scaffold(level: ScaffoldLevel) {
@@ -22,9 +29,24 @@ function scaffold(level: ScaffoldLevel) {
   }
 }
 
-export function SongPlayer({ song, onExit }: { song: Song; onExit: () => void }) {
+interface PlayerProps {
+  song: Song
+  onExit: () => void
+  /** Basic / Intermediate / Advanced, for songs built from a chart or a MIDI. */
+  variants?: Variant[]
+}
+
+export function SongPlayer({ song: initial, onExit, variants }: PlayerProps) {
+  const [variantId, setVariantId] = useState(variants?.[0]?.id)
+  const song = useMemo(
+    () => (variants ? (variants.find((v) => v.id === variantId) ?? variants[0]).song : initial),
+    [variants, variantId, initial],
+  )
   const stored = progressStore.song(song.id)
   const [level, setLevel] = useState<ScaffoldLevel>(stored.scaffold)
+  useEffect(() => {
+    setLevel(progressStore.song(song.id).scaffold)
+  }, [song.id])
   const [mode, setMode] = useState<LessonMode>('wait')
   const [tempoScale, setTempoScale] = useState(1)
   const [loop, setLoop] = useState<Section | null>(null)
@@ -33,7 +55,9 @@ export function SongPlayer({ song, onExit }: { song: Song; onExit: () => void })
   const boardRef = useRef<HTMLDivElement>(null)
 
   const cfg = scaffold(level)
-  const compact = useCompact()
+  const compact = useMedia('(max-width: 620px)')
+  const landscape = useMedia('(orientation: landscape) and (max-height: 560px)')
+  const minKeyPx = landscape ? MIN_KEY_PX_LANDSCAPE : MIN_KEY_PX
   const status = useInputStatus()
   useComputerKeyboard(status.source === 'screen')
 
@@ -115,13 +139,39 @@ export function SongPlayer({ song, onExit }: { song: Song; onExit: () => void })
           <h1>{song.title}</h1>
           <p>{song.composer} · {song.key.name} · {song.timeSig[0]}/{song.timeSig[1]}</p>
         </div>
-        <div className="level-chip" title={meta.blurb}>
+        {/* Also the only scaffold control when the phone is sideways and the
+            ladder along the bottom has been folded away. */}
+        <button
+          className="level-chip"
+          title={`${meta.name} — ${meta.blurb} Tap for the next level.`}
+          aria-label={`Scaffold level ${level}, ${meta.name}. Change level.`}
+          onClick={() => {
+            const next = ((level % 5) + 1) as ScaffoldLevel
+            setLevel(next)
+            progressStore.updateSong(song.id, { scaffold: next })
+          }}
+        >
           <span className="level-num">{level}</span>
           <span className="level-name">{meta.name}</span>
-        </div>
+        </button>
       </header>
 
-      <p className="level-blurb">{meta.blurb}</p>
+      {variants && (
+        <div className="seg wide arrangement" role="group" aria-label="Arrangement">
+          {variants.map((v) => (
+            <button key={v.id} className={v.id === song.id.split(':')[1] ? 'on' : ''}
+              onClick={() => setVariantId(v.id)} title={v.blurb}>
+              {v.name}
+            </button>
+          ))}
+        </div>
+      )}
+
+      <p className="level-blurb">{variants ? song.why : meta.blurb}</p>
+
+      {song.chords && song.chords.length > 0 && (
+        <ChordStrip chords={song.chords} dueBeat={state.dueBeat} />
+      )}
 
       <Staff
         notes={song.notes}
@@ -130,15 +180,20 @@ export function SongPlayer({ song, onExit }: { song: Song; onExit: () => void })
         beatRef={beatRef}
         dueBeat={state.dueBeat}
         pxPerBeat={pxPerBeat}
-        sp={compact ? cfg.staffSize * 0.75 : cfg.staffSize}
-        showLetters={cfg.staffLetters}
+        sp={landscape ? cfg.staffSize * 0.46 : compact ? cfg.staffSize * 0.75 : cfg.staffSize}
+        pad={landscape ? [2.6, 2.2] : undefined}
+        // Chord symbols already name what to play; adding a letter to every
+        // notehead as well turns a three-note chord into a pile of text.
+        showLetters={cfg.staffLetters && !song.chords?.length}
+        chords={song.chords}
       />
 
       {/* Lane and keyboard share one scroller so a note always sits directly
           above the key it belongs to, even when the piece is wider than a phone. */}
       <div className="board" ref={boardRef}>
-        <div className="board-inner" style={{ width: `max(100%, ${whites * MIN_KEY_PX}px)` }}>
-          <div className="lane" style={{ opacity: cfg.fallingOpacity === 0 ? 0 : 1 }}>
+        <div className="board-inner" style={{ width: `max(100%, ${whites * minKeyPx}px)` }}>
+          <div className={`lane ${cfg.fallingOpacity === 0 ? 'off' : ''}`}
+            style={{ opacity: cfg.fallingOpacity === 0 ? 0 : 1 }}>
             <FallingNotes
               notes={song.notes}
               beatRef={beatRef}
@@ -237,15 +292,15 @@ export function SongPlayer({ song, onExit }: { song: Song; onExit: () => void })
   )
 }
 
-/** Phone-sized layouts get a smaller staff and a slower-scrolling one. */
-function useCompact(): boolean {
+/** Subscribe to a media query, so layout choices in JS match the ones in CSS. */
+function useMedia(query: string): boolean {
   return useSyncExternalStore(
     (cb) => {
-      const mq = window.matchMedia('(max-width: 620px)')
+      const mq = window.matchMedia(query)
       mq.addEventListener('change', cb)
       return () => mq.removeEventListener('change', cb)
     },
-    () => window.matchMedia('(max-width: 620px)').matches,
+    () => window.matchMedia(query).matches,
     () => false,
   )
 }

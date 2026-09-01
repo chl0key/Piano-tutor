@@ -5,7 +5,7 @@ import {
   clefFor, flagPath, glyphFor, keySignatureMarks, ledgerLines, staffLines, staffY,
   type Clef,
 } from '../music/notation'
-import type { SongNote } from '../music/song'
+import type { ChordMark, SongNote } from '../music/song'
 import { useSize } from './useMeasure'
 
 interface Props {
@@ -20,16 +20,21 @@ interface Props {
   /** Staff space size in px — the one number that scales the whole rendering. */
   sp?: number
   showLetters: boolean
+  /** Chord symbols printed above the top staff, when the piece came from a chart. */
+  chords?: ChordMark[]
+  /** Headroom above and below the staves, in spaces. Trimmed on short screens. */
+  pad?: [number, number]
 }
 
 /** Room above and below the staves for ledger lines, stems and letter cues. */
-const PAD_TOP = 4
+const PAD_TOP = 4.6
 const PAD_BOTTOM = 4
 /** Distance from the playhead to the left edge of the notes, in px. */
 const LEAD = 44
 
 export function Staff({
-  notes, keySig, timeSig, beatRef, dueBeat, pxPerBeat, sp = 12, showLetters,
+  notes, keySig, timeSig, beatRef, dueBeat, pxPerBeat, sp = 12, showLetters, chords,
+  pad = [PAD_TOP, PAD_BOTTOM],
 }: Props) {
   const [wrapRef, { width }] = useSize<HTMLDivElement>()
   const scrollRef = useRef<SVGGElement>(null)
@@ -40,8 +45,8 @@ export function Staff({
   const span = grand ? GRAND_HEIGHT : 4
   const clefs: Clef[] = grand ? ['treble', 'bass'] : ['treble']
 
-  const top = PAD_TOP * sp
-  const height = (PAD_TOP + span + PAD_BOTTOM) * sp
+  const top = pad[0] * sp
+  const height = (pad[0] + span + pad[1]) * sp
 
   const headerW = useMemo(() => (6.2 + Math.abs(keySig.fifths) * 0.9 + 2.8) * sp, [keySig, sp])
   const playheadX = headerW + LEAD
@@ -112,6 +117,15 @@ export function Staff({
     [engraved, pxPerBeat, sp, top, showLetters, keySig],
   )
 
+  const chordLayer = useMemo(
+    () =>
+      (chords ?? []).map((c, i) => (
+        <text key={i} className="chord-symbol" x={c.start * pxPerBeat} y={top - sp * 1.6}
+          fontSize={sp * 1.5}>{c.text}</text>
+      )),
+    [chords, pxPerBeat, top, sp],
+  )
+
   const due = dueBeat === null ? [] : engraved.filter((e) => Math.abs(e.n.start - dueBeat) < 1e-6)
 
   return (
@@ -139,6 +153,7 @@ export function Staff({
                 cx={e.n.start * pxPerBeat} cy={top + e.y * sp} r={sp * 1.4} />
             ))}
             {noteLayer}
+            {chordLayer}
           </g>
 
           {/* The header sits on top and swallows notes as they scroll off. */}

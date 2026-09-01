@@ -49,6 +49,21 @@ export const KEYS: Record<string, KeySignature> = {
   Dm: { fifths: -1, name: 'D minor' },
 }
 
+/** Fifths for each major tonic, by pitch class. Flat spellings where they read better. */
+const MAJOR_FIFTHS = [0, -5, 2, -3, 4, -1, 6, 1, -4, 3, -2, 5]
+
+const PC_NAME_SHARP = ['C', 'C♯', 'D', 'D♯', 'E', 'F', 'F♯', 'G', 'G♯', 'A', 'A♯', 'B']
+const PC_NAME_FLAT = ['C', 'D♭', 'D', 'E♭', 'E', 'F', 'G♭', 'G', 'A♭', 'A', 'B♭', 'B']
+
+/** Build a key signature for any tonic, which generated songs need. */
+export function keyFor(tonicPc: number, minor = false): KeySignature {
+  const pc = ((tonicPc % 12) + 12) % 12
+  // A minor key carries its relative major's signature: three semitones up.
+  const fifths = MAJOR_FIFTHS[minor ? (pc + 3) % 12 : pc]
+  const names = fifths < 0 ? PC_NAME_FLAT : PC_NAME_SHARP
+  return { fifths, name: `${names[pc]} ${minor ? 'minor' : 'major'}` }
+}
+
 /** Order sharps and flats appear in a key signature. */
 export const SHARP_ORDER: Letter[] = ['F', 'C', 'G', 'D', 'A', 'E', 'B']
 export const FLAT_ORDER: Letter[] = ['B', 'E', 'A', 'D', 'G', 'C', 'F']

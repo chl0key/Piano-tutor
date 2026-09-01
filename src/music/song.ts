@@ -13,6 +13,12 @@ export interface SongNote {
   finger?: number
 }
 
+/** A chord symbol printed above the staff at a given beat. */
+export interface ChordMark {
+  start: number
+  text: string
+}
+
 export interface Section {
   name: string
   start: number
@@ -34,6 +40,8 @@ export interface Song {
   teaches: string[]
   notes: SongNote[]
   sections: Section[]
+  /** Chord symbols to print above the staff, when the piece came from a chart. */
+  chords?: ChordMark[]
   /** Provenance, so it is clear everything here is free to use. */
   source: string
 }

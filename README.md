@@ -23,6 +23,54 @@ Each piece is played through five times, with less scaffolding each time. Two cl
 You can jump to any level by hand from the row at the bottom of the player — the ladder is a
 suggestion, not a gate.
 
+## Any song you like
+
+Add a song and it becomes sheet music at three levels. The levels are about how much
+of the song you play; the five scaffold levels above are about how much help you get while
+playing it. They are independent — you can read the Basic chords off a bare stave, or watch
+falling notes through the Advanced arrangement.
+
+| Level | What you play |
+|---|---|
+| **Basic** | Every chord of the song in order, one block per bar, in root position. Get through it and you have played the song. |
+| **Intermediate** | The same chords leaning on each other — inversions so the hand barely moves — over a walking bass, with sevenths back in. |
+| **Advanced** | From a MIDI: the song note for note, as actually played. From chords: broken left-hand octaves under a running right-hand arpeggio with the colour notes the chords imply. |
+
+The chords appear as symbols above the stave and as a strip along the top that lights up as you
+go, so at the Basic level you can see the whole progression and where you are in it.
+
+### Where the notes come from
+
+**Spotify finds the song.** Connect it and you can search, browse your playlists and liked songs,
+or grab whatever is playing right now, and it fills in the title and artist.
+
+Spotify cannot supply the *music*, and no app can make it. Spotify
+[withdrew the audio-features and audio-analysis endpoints](https://community.spotify.com/t5/Spotify-for-Developers/403-Forbidden-on-v1-audio-features-using-both-user-and-client/td-p/7200198)
+from new applications in November 2024, so even a song's key and tempo are no longer available,
+and playback audio is encrypted — nothing can listen to a Spotify stream and transcribe it. So
+Spotify's job here is picking the song, and the notes come from one of these:
+
+- **Paste a chord sheet.** Works for anything. Bracketed section names become loop points, bars can
+  be split with `|`, and any line that is not chords — lyrics, tab, capo notes — is ignored, so a
+  chord sheet copied off the web can go in whole. All three levels are generated from the harmony.
+- **Import a MIDI file.** Free MIDIs exist for most popular songs. This carries the real notes and
+  the real timing, so Advanced becomes the actual arrangement rather than an approximation of it,
+  while Basic and Intermediate are rebuilt from the chords read back out of the file. A band MIDI
+  has a track per instrument — pick the ones to learn and mark which hand each belongs to.
+
+Key and tempo are guessed from the music and can be corrected by hand. Guessed harmony is a
+starting point, not gospel: if a chord sounds wrong, it probably is, and editing the chart is
+quicker than arguing with the detector.
+
+Added songs live in your browser's local storage on that device, alongside your progress.
+
+### Sideways on a phone
+
+Turn the phone to landscape and the layout rebuilds around the keyboard: the stave shrinks, the
+scaffold ladder folds into the level chip in the header (tap it to change level), the falling-note
+lane collapses at the reading levels, and the keys shrink just enough that a song's whole range
+fits on screen without scrolling.
+
 ## Running it
 
 ```bash
@@ -77,9 +125,10 @@ Three input options, switched under **Listening** on the home screen:
 Progress, scaffold levels and per-note reading stats are kept in the browser's local storage on
 that device. There is no account and nothing leaves the machine.
 
-## Adding a piece
+## Adding a piece to the built-in course
 
-Songs live in `src/songs/index.ts`. Beats are quarter notes and `line()` lays a hand out
+The six taught pieces are separate from songs you add yourself, and live in
+`src/songs/index.ts`. Beats are quarter notes and `line()` lays a hand out
 note by note, so a rhythm can be edited in one place without renumbering everything after it:
 
 ```ts
@@ -122,6 +171,11 @@ detection are all in the repo.
 | `src/music/theory.ts` | MIDI numbers to spelled notes, key signatures, staff-position maths |
 | `src/music/notation.ts` | Staff geometry, accidental rules, clefs drawn as line art |
 | `src/music/song.ts` | The song model and the `line()` sequence builder |
+| `src/music/chords.ts` | Chord symbols, voicings, voice leading, key detection |
+| `src/music/chart.ts` | Chord-sheet parsing, and reading harmony back out of played notes |
+| `src/music/arrange.ts` | The three arrangement levels |
+| `src/music/midiFile.ts` | Standard MIDI file reading, quantising and hand splitting |
+| `src/spotify/spotify.ts` | Spotify PKCE sign-in and the endpoints that still work |
 | `src/music/exercises.ts` | Scales and technique, generated as ordinary songs |
 | `src/music/validate.ts` | The song checks described above |
 | `src/audio/synth.ts` | A small additive piano voice, so the app has no sample assets |
