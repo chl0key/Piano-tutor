@@ -81,18 +81,60 @@ npm run dev          # then open the printed http://localhost:5173
 `npm run dev` also prints a second address on your local network (for example
 `http://192.168.1.42:5173`). Your phone can open that while your laptop is running the server.
 
-**One catch on the phone:** browsers only allow microphone access over `https` or on `localhost`,
-so a plain `http://192.168…` address can play and display everything but will not be able to
-listen. To get the microphone working on your phone, deploy it (below) and open the `https` URL.
+**Two catches locally.** Browsers only allow microphone access over `https` or on `localhost`, so a
+plain `http://192.168…` address can play and display everything but cannot listen. And Spotify only
+accepts `http://127.0.0.1:5173/` as a redirect, never `localhost`. Both go away once it is
+deployed, which is the next section.
 
-### Putting it on the web
+### Putting it on your phone
 
-The repo includes a GitHub Actions workflow that builds and publishes to GitHub Pages. Turn it on
-once, under **Settings → Pages → Build and deployment → Source: GitHub Actions**, then push. The
-site is fully static and works offline once loaded.
+The app is a PWA: installed to a home screen it opens full screen with no browser bar, keeps your
+songs and progress, and works with no signal. It needs to be on HTTPS first — which the microphone
+requires on a phone anyway.
+
+**1. Deploy it to Vercel.**
+
+The repo already carries `vercel.json`, so there is nothing to configure.
+
+1. Go to [vercel.com](https://vercel.com) and sign in with GitHub.
+2. **Add New → Project**, and import `chl0key/Piano-tutor`. Grant access to the repo if asked.
+3. Leave every setting alone — Vite, `npm run build`, `dist` are already set — and press **Deploy**.
+4. About a minute later you get a URL like `https://piano-tutor-abc123.vercel.app`.
+5. Optional: **Settings → Domains** to rename it to something you will remember.
+
+Vercel deploys your *production branch*, which is `main` by default. This work is on
+`claude/piano-tutorial-app-rjr02x`, so either merge that branch into `main` first, or point Vercel
+at it: **Settings → Git → Production Branch**. Every push to that branch redeploys automatically.
+
+**2. Install it.**
+
+- **iPhone or iPad:** open the URL **in Safari** — Chrome on iOS cannot install apps. Tap
+  **Share**, then **Add to Home Screen**. The app itself will remind you.
+- **Android:** Chrome offers an **Install** button, and so does the app.
+
+Then open it from the home screen icon rather than the browser, and turn the phone sideways for the
+full keyboard.
+
+**3. Connect Spotify (optional).**
+
+Spotify demands an exact match on the address it sends you back to, so this has to be the deployed
+URL, not a preview one.
+
+1. Open [developer.spotify.com/dashboard](https://developer.spotify.com/dashboard) and create an
+   app. Tick **Web API**.
+2. Under **Redirect URIs**, add your Vercel address with a trailing slash:
+   `https://your-app.vercel.app/`
+3. To also use Spotify while developing, add `http://127.0.0.1:5173/` as a second URI.
+   [Spotify no longer accepts `localhost`](https://community.spotify.com/t5/Spotify-for-Developers/Increasing-security-requirements-for-integration-with-Spotify/td-p/6709091)
+   — it must be the loopback IP — and every other address must be HTTPS.
+4. Save, then copy the app's **Client ID**.
+5. In the piano app: **Add a song → Pick from Spotify**, paste the Client ID, press **Connect**.
+
+Vercel gives each branch and pull request its own preview URL. Those are not registered with
+Spotify, so use the production address when you want the Spotify picker to work.
 
 ```bash
-npm run build        # if you would rather host dist/ somewhere else
+npm run build        # if you would rather host dist/ somewhere else entirely
 ```
 
 ## How it hears you

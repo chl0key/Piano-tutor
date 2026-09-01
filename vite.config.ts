@@ -1,10 +1,11 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 
-// base: './' keeps the build portable — works from GitHub Pages, a static host,
-// or a file server on your laptop that your phone can reach over wifi.
+// Served from the root of a domain on Vercel. An absolute base keeps the
+// service worker's scope and the manifest's start_url pointing at the same
+// place, which is what makes the installed app open offline.
 export default defineConfig({
   plugins: [react()],
-  base: './',
+  base: '/',
   server: { host: true },
 })

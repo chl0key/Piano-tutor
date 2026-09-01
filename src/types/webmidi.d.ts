@@ -22,3 +22,14 @@ interface MIDIAccess {
 interface Navigator {
   requestMIDIAccess(options?: { sysex?: boolean }): Promise<MIDIAccess>
 }
+
+
+/** Chromium's install prompt. Not in the DOM library, and iOS never fires it. */
+interface BeforeInstallPromptEvent extends Event {
+  prompt(): Promise<void>
+  readonly userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>
+}
+
+interface WindowEventMap {
+  beforeinstallprompt: BeforeInstallPromptEvent
+}

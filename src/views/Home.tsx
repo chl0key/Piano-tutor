@@ -1,4 +1,5 @@
 import { Setup } from '../components/Setup'
+import { InstallPrompt } from '../components/InstallPrompt'
 import { library, useLibrary } from '../state/library'
 import { SONGS } from '../songs'
 import { EXERCISES } from '../music/exercises'
@@ -38,6 +39,8 @@ export function Home({ onOpenSong, onOpenUserSong, onOpenDrill, onAddSong }: Pro
           <span>day{streak === 1 ? '' : 's'} in a row</span>
         </div>
       </header>
+
+      <InstallPrompt />
 
       <Setup />
 
