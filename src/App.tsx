@@ -5,7 +5,8 @@ import { SightReading } from './views/SightReading'
 import { AddSong } from './views/AddSong'
 import { Training } from './views/Training'
 import { TrainingSession } from './views/TrainingSession'
-import { buildVariants, library, type Variant } from './state/library'
+import { Songbook } from './views/Songbook'
+import { buildVariants, hasMusic, library, type UserSong, type Variant } from './state/library'
 import { completeLogin } from './spotify/spotify'
 import type { Song } from './music/song'
 
@@ -17,6 +18,8 @@ type View =
   | { name: 'add' }
   | { name: 'training' }
   | { name: 'session' }
+  | { name: 'songbook' }
+  | { name: 'edit'; song: UserSong }
 
 export default function App() {
   const [view, setView] = useState<View>({ name: 'home' })
@@ -32,7 +35,15 @@ export default function App() {
 
   const openUserSong = (id: string) => {
     const user = library.get(id)
-    if (user) setView({ name: 'user-song', variants: buildVariants(user) })
+    if (!user) return
+    // A song saved with only a name has nothing to play yet, so go to its chords.
+    if (!hasMusic(user)) setView({ name: 'edit', song: user })
+    else setView({ name: 'user-song', variants: buildVariants(user) })
+  }
+
+  const editUserSong = (id: string) => {
+    const user = library.get(id)
+    if (user) setView({ name: 'edit', song: user })
   }
 
   if (view.name === 'song') return <SongPlayer song={view.song} onExit={home} />
@@ -41,6 +52,27 @@ export default function App() {
   }
   if (view.name === 'drill') return <SightReading onExit={home} />
   if (view.name === 'add') return <AddSong onCancel={home} onDone={openUserSong} />
+  if (view.name === 'edit') {
+    return (
+      <AddSong
+        key={view.song.id}
+        editing={view.song}
+        onCancel={() => setView({ name: 'songbook' })}
+        onDone={openUserSong}
+      />
+    )
+  }
+  if (view.name === 'songbook') {
+    return (
+      <Songbook
+        onOpenSong={(song) => setView({ name: 'song', song })}
+        onOpenUserSong={openUserSong}
+        onEditSong={editUserSong}
+        onAddSong={() => setView({ name: 'add' })}
+        onExit={home}
+      />
+    )
+  }
   if (view.name === 'training') {
     return <Training onStart={() => setView({ name: 'session' })} onExit={home} />
   }
@@ -61,6 +93,7 @@ export default function App() {
         onOpenDrill={() => setView({ name: 'drill' })}
         onAddSong={() => setView({ name: 'add' })}
         onOpenTraining={() => setView({ name: 'training' })}
+        onOpenSongbook={() => setView({ name: 'songbook' })}
       />
     </>
   )

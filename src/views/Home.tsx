@@ -1,7 +1,9 @@
+import { useMemo } from 'react'
 import { Setup } from '../components/Setup'
 import { InstallPrompt } from '../components/InstallPrompt'
-import { library, useLibrary } from '../state/library'
+import { useLibrary } from '../state/library'
 import { DAILY_GOAL, dueCount, levelProgress, useTraining } from '../state/training'
+import { buildBook, countByStatus, sortEntries } from '../state/songbook'
 import { SONGS } from '../songs'
 import { EXERCISES } from '../music/exercises'
 import { SCAFFOLD_LEVELS, progressStore, streakOf, useProgress } from '../state/progress'
@@ -13,13 +15,20 @@ interface Props {
   onOpenDrill: () => void
   onAddSong: () => void
   onOpenTraining: () => void
+  onOpenSongbook: () => void
 }
 
-export function Home({ onOpenSong, onOpenUserSong, onOpenDrill, onAddSong, onOpenTraining }: Props) {
+export function Home({
+  onOpenSong, onOpenUserSong, onOpenDrill, onAddSong, onOpenTraining, onOpenSongbook,
+}: Props) {
   const progress = useProgress()
   const trainingState = useTraining()
   const streak = streakOf(progress.practiceDays)
   const mine = useLibrary()
+  const book = useMemo(() => sortEntries(buildBook(progress, mine)), [progress, mine])
+  const counts = useMemo(() => countByStatus(book), [book])
+  // Whatever is furthest along and unfinished is almost always what you want next.
+  const inProgress = book.filter((e) => e.status === 'learning' && e.hasMusic).slice(0, 3)
 
   // Next up: the first piece not yet finished at the reading level.
   const nextSong =
@@ -63,82 +72,54 @@ export function Home({ onOpenSong, onOpenUserSong, onOpenDrill, onAddSong, onOpe
       <section className="block">
         <div className="block-head">
           <div>
-            <h2>Your songs</h2>
+            <h2>Songbook</h2>
             <p className="sub">
-              Any song you like, in three levels: all the chords in order, then a bit more, then the
-              whole thing.
+              Everything you are learning, have learned, or mean to get to — the taught pieces and
+              your own songs on the same shelf.
             </p>
           </div>
-          <button className="primary" onClick={onAddSong}>Add a song</button>
+          <button className="primary" onClick={onAddSong}>Add</button>
         </div>
-        {mine.length === 0 ? (
-          <button className="wide-card dashed" onClick={onAddSong}>
-            <strong>Add your first song</strong>
-            <span>
-              Find it on Spotify, then paste its chords or drop in a MIDI file. You get sheet music
-              at three levels of difficulty.
-            </span>
-          </button>
-        ) : (
-          <ul className="song-list">
-            {mine.map((s) => (
-              <li key={s.id}>
-                <button onClick={() => onOpenUserSong(s.id)}>
-                  <div className="song-main">
-                    <strong>{s.title}</strong>
-                    <span className="composer">{s.artist || 'Added by you'}</span>
-                    <span className="teaches">
-                      {s.key.name} · {s.bpm} bpm · {s.origin === 'midi' ? 'from MIDI' : 'from chords'}
-                    </span>
-                  </div>
-                  <div className="song-side">
-                    <span className="level-word">Basic · Int · Adv</span>
-                  </div>
-                </button>
-                <button
-                  className="ghost small remove"
-                  aria-label={`Remove ${s.title}`}
-                  onClick={() => {
-                    if (confirm(`Remove "${s.title}" from your songs?`)) library.remove(s.id)
-                  }}
-                >
-                  ✕
-                </button>
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
 
-      <section className="block">
-        <h2>Pieces</h2>
-        <p className="sub">Each one is played five times over, with a little less help each time.</p>
-        <ul className="song-list">
-          {SONGS.map((song) => {
-            const p = progressStore.song(song.id)
-            return (
-              <li key={song.id}>
-                <button onClick={() => onOpenSong(song)}>
-                  <div className="song-main">
-                    <strong>{song.title}</strong>
-                    <span className="composer">{song.composer}</span>
-                    <span className="teaches">{song.teaches.join(' · ')}</span>
-                  </div>
-                  <div className="song-side">
-                    <div className="ladder-mini">
-                      {SCAFFOLD_LEVELS.map((l) => (
-                        <span key={l.level} className={l.level <= p.scaffold ? 'on' : ''} />
-                      ))}
+        <button className="wide-card songbook-card" onClick={onOpenSongbook}>
+          <div className="shelf-counts">
+            <span><b>{counts.learned}</b> learned</span>
+            <span><b>{counts.learning}</b> learning</span>
+            <span><b>{counts.want}</b> to come</span>
+          </div>
+          <span className="open-book">Open songbook →</span>
+        </button>
+
+        {inProgress.length > 0 && (
+          <>
+            <p className="sub continue-label">Pick up where you left off</p>
+            <ul className="song-list">
+              {inProgress.map((entry) => (
+                <li key={entry.id}>
+                  <button onClick={() => {
+                    if (entry.origin === 'course' && entry.song) onOpenSong(entry.song)
+                    else onOpenUserSong(entry.id)
+                  }}>
+                    <div className="song-main">
+                      <strong>{entry.title}</strong>
+                      <span className="composer">{entry.artist}</span>
                     </div>
-                    <span className="level-word">
-                      {p.completedAt ? 'Read it ✓' : SCAFFOLD_LEVELS[p.scaffold - 1].name}
-                    </span>
-                  </div>
-                </button>
-              </li>
-            )
-          })}
-        </ul>
+                    <div className="song-side">
+                      <div className="ladder-mini">
+                        {SCAFFOLD_LEVELS.map((l) => (
+                          <span key={l.level} className={l.level <= entry.scaffold ? 'on' : ''} />
+                        ))}
+                      </div>
+                      <span className="level-word">
+                        {SCAFFOLD_LEVELS[Math.max(0, entry.scaffold - 1)].name}
+                      </span>
+                    </div>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </>
+        )}
       </section>
 
       <section className="block">

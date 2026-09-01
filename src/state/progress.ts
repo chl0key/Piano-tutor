@@ -43,6 +43,8 @@ export interface SongProgress {
   cleanRuns: number
   playCount: number
   completedAt?: string
+  /** Set the first time a note is actually played, not only on finishing. */
+  lastPlayedAt?: string
 }
 
 export interface NoteStat {
@@ -52,8 +54,16 @@ export interface NoteStat {
   avgMs: number
 }
 
+/** Where a song sits in the songbook. */
+export type SongStatus = 'want' | 'learning' | 'learned'
+
 export interface Progress {
   songs: Record<string, SongProgress>
+  /**
+   * Statuses set by hand, which win over the one the app would work out. Keyed
+   * by song id, so a taught piece and one of your own are filed the same way.
+   */
+  statuses: Record<string, SongStatus>
   /** Per-MIDI-note reading stats, keyed by note number, driving drill selection. */
   noteStats: Record<string, NoteStat>
   /** ISO dates (YYYY-MM-DD) on which some practice happened. */
@@ -62,7 +72,7 @@ export interface Progress {
   lastSongId?: string
 }
 
-const EMPTY: Progress = { songs: {}, noteStats: {}, practiceDays: [], totalMinutes: 0 }
+const EMPTY: Progress = { songs: {}, statuses: {}, noteStats: {}, practiceDays: [], totalMinutes: 0 }
 
 export function defaultSongProgress(): SongProgress {
   return { scaffold: 1, bestAccuracy: 0, cleanRuns: 0, playCount: 0 }
@@ -151,6 +161,14 @@ export const progressStore = {
       avgMs: prev.avgMs + (ms - prev.avgMs) / seen,
     }
     commit({ ...current, noteStats: { ...current.noteStats, [key]: stat } })
+  },
+
+  /** Pin a song to a shelf, or pass null to let the app work it out again. */
+  setStatus(id: string, status: SongStatus | null) {
+    const statuses = { ...current.statuses }
+    if (status) statuses[id] = status
+    else delete statuses[id]
+    commit({ ...current, statuses })
   },
 
   logPractice(minutes: number) {

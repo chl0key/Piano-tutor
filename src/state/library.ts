@@ -26,6 +26,15 @@ export interface UserSong {
   art?: string
 }
 
+/**
+ * A song can be saved with nothing but a name — a note to yourself that you
+ * want to learn it — and given chords later.
+ */
+export function hasMusic(user: UserSong): boolean {
+  if (user.origin === 'midi') return (user.midiNotes?.length ?? 0) > 0
+  return (user.chartText ?? '').trim().length > 0
+}
+
 function load(): UserSong[] {
   try {
     const raw = localStorage.getItem(STORAGE_KEY)
@@ -54,6 +63,11 @@ export const library = {
   get: (id: string) => current.find((s) => s.id === id),
   add(song: UserSong) {
     commit([song, ...current.filter((s) => s.id !== song.id)])
+  },
+
+  /** Replace a song in place, keeping its position in the list. */
+  update(song: UserSong) {
+    commit(current.map((s) => (s.id === song.id ? song : s)))
   },
   remove(id: string) {
     commit(current.filter((s) => s.id !== id))

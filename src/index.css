@@ -756,3 +756,64 @@ input[type="file"] { padding: 14px; border-style: dashed; }
 .picked-note { font-size: 12.5px; }
 .preview-step .staff-wrap { margin-top: 2px; }
 .chord-preview .more { color: var(--muted); }
+
+/* ------------------------------------------------------------ Songbook */
+
+.songbook {
+  max-width: 760px; margin: 0 auto; width: 100%;
+  padding: 18px 16px calc(48px + env(safe-area-inset-bottom));
+  display: flex; flex-direction: column; gap: 16px;
+}
+.songbook .player-head .primary { flex-shrink: 0; }
+
+.shelf-row { display: flex; gap: 7px; overflow-x: auto; scrollbar-width: none; padding-bottom: 2px; }
+.shelf-row::-webkit-scrollbar { display: none; }
+.shelf-row button { flex: 0 0 auto; font-size: 13px; padding: 8px 13px; }
+.shelf-row em { font-style: normal; color: var(--muted); margin-left: 5px; font-size: 11.5px; }
+.shelf-row button.on em { color: #123049; }
+.shelf-empty {
+  color: var(--muted); font-size: 13.5px; text-align: center; padding: 32px 20px;
+  border: 1px dashed var(--line); border-radius: var(--radius); max-width: 44ch; margin: 0 auto;
+}
+
+.book-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.book-row {
+  position: relative; display: grid; grid-template-columns: 1fr auto; align-items: stretch;
+  background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius);
+  border-left: 3px solid var(--line); overflow: hidden;
+}
+.book-row.status-learning { border-left-color: var(--rh); }
+.book-row.status-learned { border-left-color: var(--good); }
+.book-row.status-want { border-left-color: #4a5468; }
+
+.book-main {
+  background: none; border: none; border-radius: 0; text-align: left;
+  display: flex; flex-direction: column; gap: 5px; padding: 13px 14px; min-width: 0;
+}
+.book-title { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.book-title strong { font-size: 15px; }
+.book-meta { display: flex; gap: 10px; flex-wrap: wrap; font-size: 11.5px; color: var(--muted); }
+.book-meta .pill {
+  background: var(--panel-2); border: 1px solid var(--line); border-radius: 999px; padding: 1px 8px;
+}
+.book-meta .learned-on { color: var(--good); }
+.needs-chords { color: var(--target); }
+.book-row .ladder-mini { margin-top: 2px; }
+.book-row .ladder-mini span { width: 16px; height: 4px; }
+
+.book-menu { align-self: flex-start; padding: 12px 14px; font-size: 18px; line-height: 1; }
+.book-actions {
+  grid-column: 1 / -1; display: flex; gap: 6px; flex-wrap: wrap; align-items: center;
+  padding: 11px 14px; border-top: 1px solid var(--line); background: var(--panel-2);
+}
+.book-actions .label { font-size: 11.5px; color: var(--muted); }
+.book-actions button { font-size: 12px; padding: 6px 10px; }
+.book-actions .danger { color: var(--bad); border-color: #4a2226; }
+.book-actions .danger:hover { background: #2a1616; }
+
+.songbook-card { flex-direction: row; align-items: center; justify-content: space-between; gap: 14px; }
+.shelf-counts { display: flex; gap: 16px; flex-wrap: wrap; font-size: 12.5px; color: var(--muted); }
+.shelf-counts b { color: var(--ink); font-size: 17px; margin-right: 4px; }
+.open-book { color: var(--rh); font-size: 13px; font-weight: 600; flex-shrink: 0; }
+.continue-label { margin-top: 16px; }
+.save-note { padding: 0 2px; }

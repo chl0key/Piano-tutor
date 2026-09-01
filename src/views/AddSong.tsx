@@ -23,24 +23,34 @@ Am F C G`
 
 const TIME_SIGS: [number, number][] = [[4, 4], [3, 4], [6, 8], [2, 4]]
 
-export function AddSong({ onDone, onCancel }: { onDone: (id: string) => void; onCancel: () => void }) {
-  const [title, setTitle] = useState('')
-  const [artist, setArtist] = useState('')
-  const [spotifyId, setSpotifyId] = useState<string>()
-  const [art, setArt] = useState<string>()
+interface Props {
+  onDone: (id: string) => void
+  onCancel: () => void
+  /** Set when an existing song is being edited rather than a new one added. */
+  editing?: UserSong
+}
+
+export function AddSong({ onDone, onCancel, editing }: Props) {
+  const [title, setTitle] = useState(editing?.title ?? '')
+  const [artist, setArtist] = useState(editing?.artist ?? '')
+  const [spotifyId, setSpotifyId] = useState<string | undefined>(editing?.spotifyId)
+  const [art, setArt] = useState<string | undefined>(editing?.art)
   const [picked, setPicked] = useState(false)
 
-  const [mode, setMode] = useState<Mode>('build')
-  const [chartText, setChartText] = useState('')
+  const [mode, setMode] = useState<Mode>(editing?.origin === 'midi' ? 'midi' : 'build')
+  const [chartText, setChartText] = useState(editing?.chartText ?? '')
+  // A MIDI file is not kept, only the notes it produced, so editing keeps those
+  // unless a new file is imported over them.
+  const [keptMidiNotes] = useState<SongNote[]>(editing?.midiNotes ?? [])
   const [midi, setMidi] = useState<MidiFileData | null>(null)
   const [tracks, setTracks] = useState<number[]>([])
   const [leftTracks, setLeftTracks] = useState<number[]>([])
   const [midiError, setMidiError] = useState<string | null>(null)
 
-  const [timeSig, setTimeSig] = useState<[number, number]>([4, 4])
-  const [bpm, setBpm] = useState(84)
-  const [key, setKey] = useState<KeySignature>(keyFor(0))
-  const [keyTouched, setKeyTouched] = useState(false)
+  const [timeSig, setTimeSig] = useState<[number, number]>(editing?.timeSig ?? [4, 4])
+  const [bpm, setBpm] = useState(editing?.bpm ?? 84)
+  const [key, setKey] = useState<KeySignature>(editing?.key ?? keyFor(0))
+  const [keyTouched, setKeyTouched] = useState(!!editing)
   const [saveError, setSaveError] = useState<string | null>(null)
   const [previewLevel, setPreviewLevel] = useState<ArrangementLevel>('basic')
   const fileRef = useRef<HTMLInputElement>(null)
@@ -55,9 +65,10 @@ export function AddSong({ onDone, onCancel }: { onDone: (id: string) => void; on
   )
 
   const midiNotes: SongNote[] = useMemo(() => {
-    if (origin !== 'midi' || !midi || tracks.length === 0) return []
+    if (origin !== 'midi') return []
+    if (!midi || tracks.length === 0) return keptMidiNotes
     return buildFromMidi(midi, { tracks, leftHand: leftTracks }).slice(0, MAX_NOTES)
-  }, [origin, midi, tracks, leftTracks])
+  }, [origin, midi, tracks, leftTracks, keptMidiNotes])
 
   const suggestedKey = useMemo(() => {
     if (origin === 'chords') return chart?.key ?? keyFor(0)
@@ -84,14 +95,16 @@ export function AddSong({ onDone, onCancel }: { onDone: (id: string) => void; on
   }, [title])
 
   const hasMusic = origin === 'chords' ? (chart?.events.length ?? 0) > 0 : midiNotes.length > 0
-  const ready = title.trim().length > 0 && hasMusic
+  // A name is enough to save: a song can sit on the "want to learn" shelf until
+  // there is time to work out its chords.
+  const ready = title.trim().length > 0
 
   const draft: UserSong | null = ready
     ? {
-        id: `user-${Date.now().toString(36)}`,
+        id: editing?.id ?? `user-${Date.now().toString(36)}`,
         title: title.trim(),
         artist: artist.trim(),
-        addedAt: new Date().toISOString(),
+        addedAt: editing?.addedAt ?? new Date().toISOString(),
         timeSig,
         bpm,
         key: activeKey,
@@ -103,7 +116,7 @@ export function AddSong({ onDone, onCancel }: { onDone: (id: string) => void; on
       }
     : null
 
-  const variants = useMemo(() => (draft ? buildVariants(draft) : []), [draft])
+  const variants = useMemo(() => (draft && hasMusic ? buildVariants(draft) : []), [draft, hasMusic])
   const previewSong = variants.find((v) => v.id === previewLevel)?.song
   const previewPxPerBeat = useMemo(() => {
     if (!previewSong) return 46
@@ -115,7 +128,8 @@ export function AddSong({ onDone, onCancel }: { onDone: (id: string) => void; on
     if (!draft) return
     preview.stop()
     try {
-      library.add(draft)
+      if (editing) library.update(draft)
+      else library.add(draft)
       onDone(draft.id)
     } catch (e) {
       setSaveError(e instanceof Error ? e.message : 'That song could not be saved.')
@@ -127,8 +141,8 @@ export function AddSong({ onDone, onCancel }: { onDone: (id: string) => void; on
       <header className="player-head">
         <button className="ghost" onClick={onCancel} aria-label="Back">←</button>
         <div className="titles">
-          <h1>Add a song</h1>
-          <p>Name it, give it chords, hear it, keep it.</p>
+          <h1>{editing ? 'Edit song' : 'Add a song'}</h1>
+          <p>{editing ? editing.title : 'Name it, give it chords, hear it, keep it.'}</p>
         </div>
       </header>
 
@@ -320,11 +334,24 @@ export function AddSong({ onDone, onCancel }: { onDone: (id: string) => void; on
         </section>
       )}
 
+      {ready && !hasMusic && (
+        <p className="muted save-note">
+          No chords yet — saving now puts it on the <strong>want to learn</strong> shelf, and you can
+          come back and add them any time.
+        </p>
+      )}
+
       {saveError && <p className="error">{saveError}</p>}
 
       <div className="add-actions">
         <button className="primary" disabled={!ready} onClick={save}>
-          {ready ? 'Save and start learning' : !title.trim() ? 'Give it a title first' : 'Add some chords first'}
+          {!ready
+            ? 'Give it a title first'
+            : editing
+              ? 'Save changes'
+              : hasMusic
+                ? 'Save and start learning'
+                : 'Add to songbook for later'}
         </button>
         <button onClick={() => { preview.stop(); onCancel() }}>Cancel</button>
       </div>

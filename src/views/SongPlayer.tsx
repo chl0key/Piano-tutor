@@ -106,6 +106,13 @@ export function SongPlayer({ song: initial, onExit, variants }: PlayerProps) {
     }
   }, [state.required, low, whites])
 
+  // Mark the song as started the moment a note actually lands, so the songbook
+  // shows it as being learned rather than still on the list.
+  useEffect(() => {
+    if (state.hits !== 1) return
+    progressStore.updateSong(song.id, { lastPlayedAt: new Date().toISOString() })
+  }, [state.hits, song.id])
+
   // Two clean runs at a level is the signal to take a scaffold away.
   useEffect(() => {
     if (!state.finished || state.hits === 0) return
