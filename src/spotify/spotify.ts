@@ -47,12 +47,42 @@ export interface SpotifyTrack {
   durationMs: number
 }
 
+/**
+ * The app's own Spotify client ID.
+ *
+ * This is deliberately in the source. A client ID is not a secret: PKCE exists
+ * precisely so a browser app needs no client secret, and this value is visible
+ * in the request to Spotify's authorize endpoint to anyone who opens the app.
+ * What actually protects the account is the redirect URI allowlist on Spotify's
+ * side — a token can only ever be sent back to an address registered on this
+ * app. Set VITE_SPOTIFY_CLIENT_ID at build time to point at a different app,
+ * or paste one into the setup panel to override it on one device.
+ */
+const BUILT_IN_CLIENT_ID = 'b6b2186e877d46f4a8bd5b818e931bc1'
+
 export function getClientId(): string {
+  const configured = import.meta.env.VITE_SPOTIFY_CLIENT_ID as string | undefined
   try {
-    return localStorage.getItem(STORE.clientId) ?? ''
+    return localStorage.getItem(STORE.clientId) || configured || BUILT_IN_CLIENT_ID
   } catch {
-    return ''
+    return configured || BUILT_IN_CLIENT_ID
   }
+}
+
+/** Whether a client ID was typed in on this device, rather than shipped with the app. */
+export function hasCustomClientId(): boolean {
+  try {
+    return !!localStorage.getItem(STORE.clientId)
+  } catch {
+    return false
+  }
+}
+
+export function clearClientId() {
+  try {
+    localStorage.removeItem(STORE.clientId)
+  } catch { /* storage unavailable */ }
+  notify()
 }
 
 export function setClientId(id: string) {

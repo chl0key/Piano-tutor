@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import {
-  announceChange, login, logout, nowPlaying, playlistTracks, playlists,
-  redirectUri, savedTracks, searchTracks, setClientId, useSpotifyStatus,
+  announceChange, clearClientId, hasCustomClientId, login, logout, nowPlaying, playlistTracks,
+  playlists, redirectUri, savedTracks, searchTracks, setClientId, useSpotifyStatus,
   type SpotifyPlaylist, type SpotifyTrack,
 } from '../spotify/spotify'
 
@@ -62,42 +62,50 @@ export function SpotifyPicker({ onPick }: { onPick: (track: SpotifyTrack) => voi
         </button>
         {open && (
           <div className="spotify-setup">
-            <p className="sub">
-              Spotify needs a free developer app of your own — a one-time setup that takes about two
-              minutes and keeps this app entirely yours.
-            </p>
-            <ol className="steps">
-              <li>Open <a href="https://developer.spotify.com/dashboard" target="_blank" rel="noreferrer">developer.spotify.com/dashboard</a> and create an app.</li>
-              <li>
-                Add this exact redirect URI:
-                <code className="uri">{redirectUri()}</code>
-              </li>
-              <li>Tick <strong>Web API</strong>, save, then copy the app's Client ID below.</li>
-            </ol>
-            <div className="field-row">
-              <label className="field grow">
-                <span>Client ID</span>
-                <input value={idDraft} onChange={(e) => setIdDraft(e.target.value)}
-                  placeholder="e.g. 4c2f…" spellCheck={false} />
-              </label>
-              <button
-                className="primary"
-                disabled={idDraft.trim().length < 8}
-                onClick={() => {
-                  setClientId(idDraft)
-                  announceChange()
-                  void login().catch((e) => setError(String(e.message ?? e)))
-                }}
-              >
-                Connect
-              </button>
-            </div>
-            {error && <p className="error">{error}</p>}
+            <button className="primary connect-now"
+              onClick={() => void login().catch((e) => setError(String(e.message ?? e)))}>
+              Connect Spotify
+            </button>
             <p className="muted">
-              Spotify withdrew its key and tempo endpoints from new apps in 2024, and playback audio
-              is encrypted, so nothing can transcribe a track from Spotify. This is for finding the
-              song; the notes come from the next step.
+              Used to search your playlists, liked songs and whatever is playing right now, so a
+              song can be picked rather than typed. Spotify withdrew its key and tempo data from new
+              apps in 2024 and playback audio is encrypted, so nothing can transcribe a track from
+              it — the notes come from the next step.
             </p>
+            {error && <p className="error">{error}</p>}
+
+            <details className="own-app">
+              <summary>Use your own Spotify app instead</summary>
+              <p className="sub">
+                Only needed if you would rather not use the app this ships with. Create one at{' '}
+                <a href="https://developer.spotify.com/dashboard" target="_blank" rel="noreferrer">
+                  developer.spotify.com/dashboard
+                </a>, tick <strong>Web API</strong>, and register this exact redirect URI:
+              </p>
+              <code className="uri">{redirectUri()}</code>
+              <div className="field-row">
+                <label className="field grow">
+                  <span>Client ID</span>
+                  <input value={idDraft} onChange={(e) => setIdDraft(e.target.value)}
+                    placeholder={clientId} spellCheck={false} />
+                </label>
+                <button
+                  disabled={idDraft.trim().length < 8}
+                  onClick={() => {
+                    setClientId(idDraft)
+                    announceChange()
+                    void login().catch((e) => setError(String(e.message ?? e)))
+                  }}
+                >
+                  Use it
+                </button>
+              </div>
+              {hasCustomClientId() && (
+                <button className="small ghost-line" onClick={() => { clearClientId(); setIdDraft('') }}>
+                  Go back to the built-in app
+                </button>
+              )}
+            </details>
           </div>
         )}
       </div>
