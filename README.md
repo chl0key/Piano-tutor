@@ -50,6 +50,9 @@ from new applications in November 2024, so even a song's key and tempo are no lo
 and playback audio is encrypted — nothing can listen to a Spotify stream and transcribe it. So
 Spotify's job here is picking the song, and the notes come from one of these:
 
+- **Tap the chords in.** Pick the key and the app offers only the chords that belong to it, named
+  by letter and by degree. One tap on a common progression — the four-chord loop, doo-wop, twelve-bar
+  blues — writes a whole verse. This is the quickest way in on a phone.
 - **Paste a chord sheet.** Works for anything. Bracketed section names become loop points, bars can
   be split with `|`, and any line that is not chords — lyrics, tab, capo notes — is ignored, so a
   chord sheet copied off the web can go in whole. All three levels are generated from the harmony.
@@ -58,7 +61,11 @@ Spotify's job here is picking the song, and the notes come from one of these:
   while Basic and Intermediate are rebuilt from the chords read back out of the file. A band MIDI
   has a track per instrument — pick the ones to learn and mark which hand each belongs to.
 
-Key and tempo are guessed from the music and can be corrected by hand. Guessed harmony is a
+Whichever route, the last step shows the arrangement as real notation and plays it, so a wrong
+chord can be heard before the song is saved rather than discovered halfway through learning it.
+
+Key and tempo are guessed from a pasted chart or an imported MIDI, and set by hand when tapping
+chords in — which is what lets the palette offer the right chords. Guessed harmony is a
 starting point, not gospel: if a chord sounds wrong, it probably is, and editing the chart is
 quicker than arguing with the detector.
 

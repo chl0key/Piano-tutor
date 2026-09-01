@@ -64,6 +64,22 @@ export function keyFor(tonicPc: number, minor = false): KeySignature {
   return { fifths, name: `${names[pc]} ${minor ? 'minor' : 'major'}` }
 }
 
+/** Which note a key signature is centred on, and whether it is a minor key. */
+export function tonicOf(key: KeySignature): { pc: number; minor: boolean } {
+  const minor = /minor/i.test(key.name)
+  // Each step round the circle of fifths is seven semitones; a minor key sits
+  // three semitones below the major sharing its signature.
+  const majorPc = (((key.fifths * 7) % 12) + 12) % 12
+  return { pc: minor ? (majorPc + 9) % 12 : majorPc, minor }
+}
+
+/** Note names for display, spelled to match the key signature's direction. */
+export function pitchClassName(pc: number, preferFlats = false): string {
+  const sharp = ['C', 'C♯', 'D', 'D♯', 'E', 'F', 'F♯', 'G', 'G♯', 'A', 'A♯', 'B']
+  const flat = ['C', 'D♭', 'D', 'E♭', 'E', 'F', 'G♭', 'G', 'A♭', 'A', 'B♭', 'B']
+  return (preferFlats ? flat : sharp)[((pc % 12) + 12) % 12]
+}
+
 /** Order sharps and flats appear in a key signature. */
 export const SHARP_ORDER: Letter[] = ['F', 'C', 'G', 'D', 'A', 'E', 'B']
 export const FLAT_ORDER: Letter[] = ['B', 'E', 'A', 'D', 'G', 'C', 'F']

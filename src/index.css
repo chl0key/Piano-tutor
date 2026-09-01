@@ -727,3 +727,32 @@ input[type="file"] { padding: 14px; border-style: dashed; }
   .keypad button { padding: 18px 6px; }
   .summary h1 { font-size: 36px; }
 }
+
+/* --------------------------------------------------- Chord builder */
+
+.chord-builder { display: flex; flex-direction: column; gap: 12px; }
+.chord-palette { display: grid; grid-template-columns: repeat(auto-fit, minmax(78px, 1fr)); gap: 8px; }
+.chord-palette button {
+  display: flex; flex-direction: column; align-items: center; gap: 2px;
+  padding: 13px 6px; background: var(--panel-2);
+}
+.chord-palette button:active { background: var(--rh); color: #08121d; }
+.chord-palette strong { font-size: 16px; }
+.chord-palette em { font-style: normal; font-size: 11px; color: var(--muted); }
+.chord-palette button:active em { color: #123049; }
+.builder-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+
+.presets { border-top: 1px solid var(--line); padding-top: 10px; }
+.presets summary { font-size: 12.5px; color: var(--muted); cursor: pointer; }
+.presets summary:hover { color: var(--ink); }
+.preset-list { display: flex; flex-direction: column; gap: 7px; margin-top: 10px; }
+.preset-list button {
+  display: flex; flex-direction: column; gap: 3px; text-align: left; padding: 11px 13px;
+  background: var(--panel-2);
+}
+.preset-list strong { font-size: 13.5px; }
+.preset-list span { font-size: 12px; color: var(--muted); }
+
+.picked-note { font-size: 12.5px; }
+.preview-step .staff-wrap { margin-top: 2px; }
+.chord-preview .more { color: var(--muted); }
