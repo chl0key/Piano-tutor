@@ -1,6 +1,7 @@
 import { Setup } from '../components/Setup'
 import { InstallPrompt } from '../components/InstallPrompt'
 import { library, useLibrary } from '../state/library'
+import { DAILY_GOAL, dueCount, levelProgress, useTraining } from '../state/training'
 import { SONGS } from '../songs'
 import { EXERCISES } from '../music/exercises'
 import { SCAFFOLD_LEVELS, progressStore, streakOf, useProgress } from '../state/progress'
@@ -11,10 +12,12 @@ interface Props {
   onOpenUserSong: (id: string) => void
   onOpenDrill: () => void
   onAddSong: () => void
+  onOpenTraining: () => void
 }
 
-export function Home({ onOpenSong, onOpenUserSong, onOpenDrill, onAddSong }: Props) {
+export function Home({ onOpenSong, onOpenUserSong, onOpenDrill, onAddSong, onOpenTraining }: Props) {
   const progress = useProgress()
+  const trainingState = useTraining()
   const streak = streakOf(progress.practiceDays)
   const mine = useLibrary()
 
@@ -139,7 +142,32 @@ export function Home({ onOpenSong, onOpenUserSong, onOpenDrill, onAddSong }: Pro
       </section>
 
       <section className="block">
-        <h2>Reading drills</h2>
+        <h2>Away from the piano</h2>
+        <p className="sub">
+          Reading is mostly decoding, and decoding trains anywhere — on a train, in a queue, three
+          minutes at a time.
+        </p>
+        <button className="wide-card training-card" onClick={onOpenTraining}>
+          <div>
+            <strong>Training</strong>
+            <span>
+              Landmarks, intervals, key signatures and rhythm, mixed together and spaced so each one
+              comes back just before you would forget it.
+            </span>
+          </div>
+          <div className="training-side">
+            <em>Level {levelProgress(trainingState.xp).level}</em>
+            <span>
+              {dueCount(trainingState) > 0
+                ? `${dueCount(trainingState)} due`
+                : `${trainingState.todayXp}/${DAILY_GOAL} today`}
+            </span>
+          </div>
+        </button>
+      </section>
+
+      <section className="block">
+        <h2>At the piano</h2>
         <p className="sub">Five minutes of this does more for reading than an hour of anything else.</p>
         <button className="wide-card" onClick={onOpenDrill}>
           <strong>Name that note</strong>

@@ -554,3 +554,170 @@ input[type="file"] { padding: 14px; border-style: dashed; }
   .score span { font-size: 10.5px; }
   .add-song, .home { padding-top: 12px; }
 }
+
+/* ============================================================ Training */
+
+.training, .session, .summary {
+  max-width: 720px; margin: 0 auto; width: 100%;
+  padding: 18px 16px calc(40px + env(safe-area-inset-bottom));
+  display: flex; flex-direction: column; gap: 18px;
+}
+
+.today {
+  display: flex; align-items: center; gap: 18px;
+  background: linear-gradient(140deg, #1d2a3d, #171a23 70%);
+  border: 1px solid #2f4460; border-radius: var(--radius); padding: 18px;
+}
+.goal-ring { width: 84px; height: 84px; flex-shrink: 0; }
+.goal-ring .track { stroke: rgba(255, 255, 255, 0.09); }
+.goal-ring .value { stroke: var(--rh); transition: stroke-dashoffset 0.5s ease; }
+.goal-ring.done .value { stroke: var(--good); }
+.goal-text { fill: var(--ink); font-weight: 700; font-family: inherit; }
+.goal-ring.done .goal-text { fill: var(--good); }
+
+.today-stats { flex: 1; display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.stat { display: flex; flex-direction: column; gap: 5px; }
+.stat strong { font-size: 16px; }
+.stat span { font-size: 11.5px; color: var(--muted); }
+.level-bar-track, .mastery-track {
+  height: 6px; background: var(--line); border-radius: 3px; overflow: hidden;
+}
+.level-bar-track .fill { height: 100%; background: var(--rh); transition: width 0.5s ease; }
+.mastery-track .fill { height: 100%; background: var(--good); transition: width 0.5s ease; }
+.stat-row { display: flex; gap: 14px; flex-wrap: wrap; font-size: 12px; color: var(--muted); }
+.stat-row b { color: var(--ink); font-size: 13.5px; }
+
+.start-session {
+  display: flex; flex-direction: column; gap: 4px; text-align: left; padding: 16px;
+  background: var(--rh); border-color: var(--rh); color: #08121d;
+}
+.start-session strong { font-size: 16px; }
+.start-session span { font-size: 12.5px; color: #123049; }
+.start-session:hover { background: #74bcff; }
+
+.skill-list { list-style: none; margin: 14px 0 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+.skill-list li {
+  background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius);
+  padding: 14px 16px; display: flex; flex-direction: column; gap: 7px;
+}
+.skill-list li.locked { opacity: 0.55; }
+.skill-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+.skill-head strong { font-size: 14.5px; }
+.skill-pct { font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.skill-why { font-size: 12.5px; color: var(--muted); }
+.skill-meta { font-size: 11.5px; color: #7d879b; }
+
+.training-card { flex-direction: row; align-items: center; justify-content: space-between; gap: 16px; }
+.training-card > div:first-child { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.training-side { display: flex; flex-direction: column; align-items: flex-end; gap: 2px; flex-shrink: 0; }
+.training-side em { font-style: normal; font-weight: 650; font-size: 13px; color: var(--rh); }
+.training-side span { font-size: 11.5px; color: var(--muted); }
+
+/* ------------------------------------------------------------- Session */
+
+.session { min-height: 100%; }
+.session-prompt { flex-shrink: 0; }
+.session-head { display: flex; align-items: center; gap: 12px; }
+.session-bar { flex: 1; height: 7px; background: var(--line); border-radius: 4px; overflow: hidden; }
+.session-bar .fill {
+  height: 100%; background: var(--rh); transform-origin: left center; transition: transform 0.35s ease;
+}
+.combo {
+  font-size: 12.5px; color: var(--muted); font-variant-numeric: tabular-nums; min-width: 74px;
+  text-align: right;
+}
+.combo.hot { color: var(--target); font-weight: 700; }
+
+.session-prompt { font-size: 17px; font-weight: 650; text-align: center; }
+
+.question {
+  display: flex; flex-direction: column; gap: 16px; border-radius: var(--radius);
+  transition: box-shadow 0.15s;
+  /* Notation at the top, answers within thumb reach at the bottom. */
+  flex: 1; justify-content: space-between;
+}
+.question.right { box-shadow: 0 0 0 2px var(--good); }
+.question.wrong { box-shadow: 0 0 0 2px var(--bad); }
+
+/* Inside a question the notation takes the room going spare: bigger notation is
+   easier to read at a glance, which is the entire point. */
+.question > .mini-staff { flex: 1 1 auto; height: auto; min-height: 150px; max-height: 340px; }
+
+.mini-staff {
+  display: block; width: 100%; height: 200px; background: var(--paper);
+  border-radius: var(--radius); padding: 10px 4px; box-shadow: 0 6px 24px rgba(0, 0, 0, 0.35);
+}
+/* The main staff is drawn in pixels; this one is drawn in staff spaces, so every
+   stroke width inherited from those rules has to be restated at this scale. */
+.mini-staff .staff-line, .mini-staff .ledger { stroke-width: 0.09; }
+.mini-staff .staff-brace { stroke-width: 0.2; }
+.mini-staff .note .stem { stroke-width: 0.14; }
+.mini-staff .accidental { font-size: inherit; }
+
+.mini-staff .note .head.filled, .mini-staff .note .flag, .mini-staff .note .dot { fill: #1a1a1a; }
+.mini-staff .note .head.open { fill: none; stroke: #1a1a1a; }
+.mini-staff .note .stem { stroke: #1a1a1a; }
+.mini-staff .rest-block { fill: #1a1a1a; }
+.mini-staff .rest-stroke { stroke: #1a1a1a; stroke-linecap: round; stroke-linejoin: round; }
+.mini-staff .rest-eighth circle { fill: #1a1a1a; }
+.mini-staff .rest-eighth path { stroke: #1a1a1a; stroke-linecap: round; }
+.mini-note.ask .head.filled { fill: #1a4f86; }
+.mini-note.ask .stem { stroke: #1a4f86; }
+.mini-label { fill: #6f665a; font-family: inherit; font-weight: 600; }
+
+.keypad { display: grid; grid-template-columns: repeat(auto-fit, minmax(72px, 1fr)); gap: 8px; }
+.keypad.wide { grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); }
+.keypad button {
+  padding: 16px 8px; font-size: 17px; font-weight: 650; background: var(--panel);
+}
+.keypad.letters button { font-size: 20px; }
+.keypad button:disabled { opacity: 0.4; }
+
+.verdict { text-align: center; font-size: 14px; font-weight: 600; }
+.verdict.right { color: var(--good); }
+.verdict.wrong { color: var(--bad); }
+
+.session.empty { align-items: center; justify-content: center; text-align: center; gap: 14px; }
+
+/* -------------------------------------------------------------- Rhythm */
+
+.rhythm-drill { display: flex; flex-direction: column; gap: 14px; }
+.rhythm-staff {
+  display: block; width: 100%; max-height: 150px; background: var(--paper);
+  border-radius: var(--radius); padding: 12px; box-shadow: 0 6px 24px rgba(0, 0, 0, 0.35);
+}
+.rhythm-line { stroke: #2b2b2b; }
+.rhythm-beat { stroke: #c3bdb0; }
+.rhythm-note .head.filled, .rhythm-note .flag, .rhythm-note .dot { fill: #1a1a1a; }
+.rhythm-note .head.open { fill: none; stroke: #1a1a1a; }
+.rhythm-note line { stroke: #1a1a1a; }
+.rhythm-note.hit .head.filled, .rhythm-note.hit .flag { fill: #1f9d55; }
+.rhythm-note.hit .head.open { stroke: #1f9d55; }
+.rhythm-note.hit line { stroke: #1f9d55; }
+.rhythm-playhead { stroke: rgba(220, 60, 60, 0.65); transition: opacity 0.2s; }
+
+.tap-pad {
+  height: 130px; font-size: 20px; font-weight: 700; letter-spacing: 0.04em;
+  background: var(--panel-2); border: 2px dashed var(--line); touch-action: none;
+}
+.tap-pad.playing { border-style: solid; border-color: var(--rh); background: #17273a; }
+.tap-pad:active { background: var(--rh); color: #08121d; }
+.tap-pad .count { font-size: 44px; color: var(--target); }
+.tap-start { padding: 18px; font-size: 15px; }
+
+/* ------------------------------------------------------------- Summary */
+
+.summary { align-items: center; text-align: center; justify-content: center; min-height: 100%; }
+.summary h1 { font-size: 44px; color: var(--target); }
+.summary .sub { margin: 0; }
+.level-bar { width: 100%; max-width: 340px; display: flex; flex-direction: column; gap: 6px; }
+.level-bar span { font-size: 12px; color: var(--muted); }
+.closing { color: var(--muted); font-size: 13.5px; max-width: 40ch; }
+.summary-actions { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+
+@media (max-width: 620px) {
+  .today { flex-direction: row; padding: 14px; gap: 14px; }
+  .goal-ring { width: 68px; height: 68px; }
+  .keypad button { padding: 18px 6px; }
+  .summary h1 { font-size: 36px; }
+}

@@ -3,6 +3,8 @@ import { Home } from './views/Home'
 import { SongPlayer } from './views/SongPlayer'
 import { SightReading } from './views/SightReading'
 import { AddSong } from './views/AddSong'
+import { Training } from './views/Training'
+import { TrainingSession } from './views/TrainingSession'
 import { buildVariants, library, type Variant } from './state/library'
 import { completeLogin } from './spotify/spotify'
 import type { Song } from './music/song'
@@ -13,6 +15,8 @@ type View =
   | { name: 'user-song'; variants: Variant[] }
   | { name: 'drill' }
   | { name: 'add' }
+  | { name: 'training' }
+  | { name: 'session' }
 
 export default function App() {
   const [view, setView] = useState<View>({ name: 'home' })
@@ -37,6 +41,12 @@ export default function App() {
   }
   if (view.name === 'drill') return <SightReading onExit={home} />
   if (view.name === 'add') return <AddSong onCancel={home} onDone={openUserSong} />
+  if (view.name === 'training') {
+    return <Training onStart={() => setView({ name: 'session' })} onExit={home} />
+  }
+  if (view.name === 'session') {
+    return <TrainingSession onExit={() => setView({ name: 'training' })} />
+  }
 
   return (
     <>
@@ -50,6 +60,7 @@ export default function App() {
         onOpenUserSong={openUserSong}
         onOpenDrill={() => setView({ name: 'drill' })}
         onAddSong={() => setView({ name: 'add' })}
+        onOpenTraining={() => setView({ name: 'training' })}
       />
     </>
   )

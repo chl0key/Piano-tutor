@@ -71,6 +71,76 @@ scaffold ladder folds into the level chip in the header (tap it to change level)
 lane collapses at the reading levels, and the keys shrink just enough that a song's whole range
 fits on screen without scrolling.
 
+## Away from the piano
+
+Reading music is mostly a decoding skill, and decoding trains without an instrument. This is the
+part you can do on a train, in a queue, three minutes at a time.
+
+Eight drills, mixed together rather than practised in blocks:
+
+| Drill | What it is for |
+|---|---|
+| **Landmarks** | Six anchor notes, cold. Fluent readers do not count lines; they know a handful of notes on sight and measure everything else from them. |
+| **Note values** | How long a note or rest is held. Half of reading is rhythm, and it is the half needing no piano at all. |
+| **Treble staff** | Every note on the top staff, to the point of not thinking about it. |
+| **Steps and skips** | How far apart two notes are. This is the one that turns note-by-note decoding into reading. |
+| **Bass staff** | The staff most self-taught players never learn, which is why the left hand stays guesswork. |
+| **Key signatures** | Which key a signature means, on sight. |
+| **Rhythm tapping** | Tap each notehead as it arrives, held for its own length. |
+| **Find the key** | Notation to key under the finger, without needing the piano in front of you. |
+
+Skills unlock as earlier ones are learned, so the first session is six items rather than eighty.
+
+### Why these drills, and why in this shape
+
+Some deliberate choices, each with a reason behind it:
+
+- **No mnemonics.** "Every Good Boy Deserves Fudge" works, but it puts a recited alphabet between
+  seeing a note and knowing it, and that step never fully goes away. Guidance aimed at adult
+  learners consistently favours [landmarks and intervals instead](https://www.musicandtheory.com/how-to-read-music-using-intervals-and-landmark-notes-vs-mnemonics/),
+  which is what this trains.
+- **Intervals and key signatures get their own drills.** Eye-tracking studies of sight-reading find
+  amateurs move through a score note by note, while experts group notes into chunks and fixate on
+  the key signature deliberately ([Perra et al., 2024](https://lead.ube.fr/wp-content/uploads/2024/07/Perra_et_al._2024.pdf)).
+  Those are learnable skills, so they are drilled rather than left to emerge.
+- **Speed is scored, not just accuracy.** Answer inside about a second and a half and the item is
+  treated as known; take four seconds and it comes back sooner, because working a note out is not
+  the same as reading it.
+- **Questions are interleaved, never blocked.** Consecutive questions come from different drills.
+  Having to work out *which kind* of question this is turns out to be part of the skill.
+- **Spacing does the teaching.** Each item is scheduled for the moment you are about to forget it —
+  see below.
+- **Rhythm is tapped on the noteheads.** Tapping *on* each note for its own length ties the symbol
+  to the duration in a way that [clapping alongside does not](https://www.teachpianotoday.com/2016/04/18/after-watching-this-video-you-may-never-ask-your-piano-students-to-clap-rhythm-again/).
+
+### The scheduler
+
+Every item — each landmark, each interval, each key signature — carries its own memory model,
+shaped after [FSRS](https://faqs.ankiweb.net/what-spaced-repetition-algorithm) rather than the older
+SM-2: a **difficulty** and a **stability** instead of one "ease" number, with reviews scheduled for
+the point recall is predicted to fall to 90%.
+
+The property worth having is the one that makes spacing work: an item recalled when it had nearly
+been forgotten gains far more stability than the same item drilled while still fresh. Answering the
+same note ten times in a row teaches almost nothing, and the maths says so. Get something wrong and
+it returns before the round is over, then again in a day.
+
+The published FSRS fits twenty-one parameters to hundreds of millions of reviews. This is the same
+three-component shape with hand-set constants, which is the honest thing to do without that data.
+
+### About the points
+
+XP, levels, streaks and a daily ring are in here, and they are doing a narrower job than they look
+like they are doing. A 2025 study of gamified retrieval practice found points and progress feedback
+improved competence, enjoyment and task-value but had
+[no effect on what people actually recalled](https://www.sciencedirect.com/science/article/pii/S0747563225003097)
+a few days later. Broader meta-analyses find gamification helps on average but
+[unevenly](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC10591086/), and that short interventions beat
+long ones.
+
+So the game is there to get you to open the app, and the spacing, interleaving and retrieval are
+what teach you. Sessions are twelve questions and about three minutes for the same reason.
+
 ## Running it
 
 ```bash
@@ -218,6 +288,9 @@ detection are all in the repo.
 | `src/music/arrange.ts` | The three arrangement levels |
 | `src/music/midiFile.ts` | Standard MIDI file reading, quantising and hand splitting |
 | `src/spotify/spotify.ts` | Spotify PKCE sign-in and the endpoints that still work |
+| `src/train/srs.ts` | The FSRS-shaped scheduler |
+| `src/train/skills.ts` | The eight drills, their item pools and question generation |
+| `src/state/training.ts` | XP, levels, unlocks and interleaved session building |
 | `src/music/exercises.ts` | Scales and technique, generated as ordinary songs |
 | `src/music/validate.ts` | The song checks described above |
 | `src/audio/synth.ts` | A small additive piano voice, so the app has no sample assets |
